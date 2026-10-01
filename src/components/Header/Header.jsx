@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import Logo from '../Logo/Logo'
 import { useCart } from '../../context/CartContext/CartContext'
@@ -11,11 +11,13 @@ const LINKS = [
 
 export default function Header() {
   const { itemCount } = useCart()
+  const { search } = useLocation()
+  const menuHome = `/menu${search}`
 
   return (
     <header className="sticky top-0 z-40 border-b border-mist bg-cream/95 backdrop-blur">
       <div className="mx-auto flex h-[4.75rem] w-full max-w-6xl items-center justify-between gap-3 px-4 md:h-20">
-        <NavLink to="/" className="flex min-h-11 min-w-0 items-center" aria-label="Chai Swad home">
+        <NavLink to={menuHome} className="flex min-h-11 min-w-0 items-center" aria-label="Chai Swad menu">
           <Logo />
         </NavLink>
 
