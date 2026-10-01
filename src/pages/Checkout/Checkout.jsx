@@ -141,7 +141,7 @@ export default function CheckoutPage() {
       } finally {
         if (!ignore) setQuoting(false)
       }
-    }, 400)
+    }, 900)
 
     return () => {
       ignore = true

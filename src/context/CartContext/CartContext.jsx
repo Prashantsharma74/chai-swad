@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { getMenu } from '../../services/menuService'
+import { useMenuContext } from '../MenuContext/MenuContext'
 
 const CART_KEY = 'chai-swad-cart'
 const TABLE_KEY = 'chai-swad-table'
@@ -66,6 +66,7 @@ function remapCart(cartItems, menuItems) {
 }
 
 export function CartProvider({ children }) {
+  const { items: menuItems } = useMenuContext()
   const [items, setItems] = useState(readCart)
   const [tableNumber, setTableState] = useState(readTable)
 
@@ -74,23 +75,9 @@ export function CartProvider({ children }) {
   }, [items])
 
   useEffect(() => {
-    let ignore = false
-
-    async function reconcile() {
-      try {
-        const data = await getMenu()
-        if (ignore) return
-        setItems((current) => remapCart(current, data.items || []))
-      } catch {
-        // Keep the saved cart if the menu cannot be refreshed.
-      }
-    }
-
-    reconcile()
-    return () => {
-      ignore = true
-    }
-  }, [])
+    if (!menuItems.length) return
+    setItems((current) => remapCart(current, menuItems))
+  }, [menuItems])
 
   useEffect(() => {
     if (tableNumber) sessionStorage.setItem(TABLE_KEY, String(tableNumber))
