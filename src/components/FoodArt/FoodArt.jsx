@@ -1,6 +1,7 @@
 import sandwich from '../../assets/images/sandwich.svg'
 import beverage from '../../assets/images/beverage.svg'
 import fries from '../../assets/images/fries.svg'
+import { imageForItem } from '../../constants/productImages'
 
 const ART = {
   Sandwich: sandwich,
@@ -9,17 +10,6 @@ const ART = {
 }
 
 export default function FoodArt({ item, className = '' }) {
-  if (item?.image) {
-    return (
-      <img
-        src={item.image}
-        alt={item.name}
-        loading="lazy"
-        className={`h-full w-full object-cover ${className}`}
-      />
-    )
-  }
-
-  const src = ART[item?.category] || sandwich
+  const src = imageForItem(item) || ART[item?.category] || sandwich
   return <img src={src} alt={item?.name || ''} loading="lazy" className={`h-full w-full object-cover ${className}`} />
 }

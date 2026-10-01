@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import CategoryTabs from '../../components/CategoryTabs/CategoryTabs'
+import ImageSlider from '../../components/ImageSlider/ImageSlider'
+import { PRODUCT_SLIDES } from '../../constants/productImages'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import SearchBar from '../../components/SearchBar/SearchBar'
 import LoadingSkeleton from '../../components/LoadingSkeleton/LoadingSkeleton'
@@ -41,7 +43,10 @@ export default function MenuPage() {
         ) : null}
       </div>
 
-      <SearchBar value={query} onChange={setQuery} />
+      <ImageSlider slides={PRODUCT_SLIDES} items={items} />
+      <div className="mt-5">
+        <SearchBar value={query} onChange={setQuery} />
+      </div>
       <div className="mt-4">
         <CategoryTabs categories={MENU_TABS} active={category} onChange={setCategory} />
       </div>

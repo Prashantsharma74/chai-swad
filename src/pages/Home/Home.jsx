@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Clock } from 'lucide-react'
-import FoodArt from '../../components/FoodArt/FoodArt'
+import ImageSlider from '../../components/ImageSlider/ImageSlider'
+import { PRODUCT_SLIDES } from '../../constants/productImages'
 import Logo from '../../components/Logo/Logo'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { BRAND } from '../../constants/cafe'
@@ -27,11 +28,7 @@ export default function HomePage() {
           Order Now
         </Link>
       </div>
-      <div className="card overflow-hidden">
-        <div className="aspect-square">
-          <FoodArt item={{ name: 'Chai Swad menu', category: 'Sandwich' }} />
-        </div>
-      </div>
+      <ImageSlider slides={PRODUCT_SLIDES} />
     </section>
   )
 }
