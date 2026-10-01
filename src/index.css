@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-cream font-sans text-brown antialiased;
+  min-height: 100vh;
+}
+
+button,
+a,
+input,
+textarea {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  --tw-ring-color: #6f3e22;
+}
+
+.btn-primary {
+  @apply inline-flex min-h-12 items-center justify-center rounded-2xl bg-terracotta px-5 py-3 text-base font-semibold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.btn-primary:hover:not(:disabled) {
+  @apply bg-clay;
+}
+
+.btn-secondary {
+  @apply inline-flex min-h-12 items-center justify-center rounded-2xl border border-mist bg-foam px-5 py-3 text-base font-semibold text-brown transition duration-200 hover:border-terracotta/30 active:scale-[0.98];
+}
+
+.field {
+  @apply w-full rounded-2xl border border-mist bg-foam px-4 py-3 text-base text-brown placeholder:text-cocoa/60 transition duration-200;
+}
+
+.field:focus {
+  border-color: #6f3e22;
+}
+
+.card {
+  @apply rounded-2xl border border-mist bg-foam;
+  box-shadow: 0 4px 14px rgba(74, 40, 23, 0.05);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(74, 40, 23, 0.06);
+}
+
+.success-check {
+  animation: check 0.35s ease both;
+}
+
+@keyframes check {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  @apply animate-pulse rounded-2xl bg-mist/80;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-pop,
+  .animate-check,
+  .skeleton {
+    animation: none !important;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+}
