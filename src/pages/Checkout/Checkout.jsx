@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { MapPin } from 'lucide-react'
 import OrderSummary from '../../components/OrderSummary/OrderSummary'
+import Toast from '../../components/Toast/Toast'
 import EmptyState from '../../components/EmptyState/EmptyState'
 import { useCart } from '../../context/CartContext/CartContext'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -28,6 +29,11 @@ export default function CheckoutPage() {
   const [quoting, setQuoting] = useState(false)
   const [paying, setPaying] = useState(false)
   const [notice, setNotice] = useState('')
+  const [toast, setToast] = useState('')
+  const dismissToast = useCallback(() => setToast(''), [])
+  const showToast = useCallback((message) => {
+    if (message) setToast(message)
+  }, [])
   const [location, setLocation] = useState(null)
   const [locating, setLocating] = useState(false)
   const [deliveryNote, setDeliveryNote] = useState('')
@@ -88,11 +94,13 @@ export default function CheckoutPage() {
     if (!location || !cafePoint) return
     const meters = distanceMeters(cafePoint, location)
     if (meters > deliveryRadius) {
-      setDeliveryNote(`Sorry, Chai Swad only delivers within ${deliveryRadius} meters of the cafe.`)
+      const message = `Sorry, Chai Swad only delivers within ${deliveryRadius} meters of the cafe.`
+      setDeliveryNote(message)
+      showToast(message)
     } else {
       setDeliveryNote(`You are ${meters} meters away. We can deliver here.`)
     }
-  }, [location, cafePoint, deliveryRadius])
+  }, [location, cafePoint, deliveryRadius, showToast])
 
   async function useCurrentLocation() {
     setLocating(true)
@@ -101,7 +109,9 @@ export default function CheckoutPage() {
       const point = await readCurrentPosition()
       setLocation(point)
     } catch (err) {
-      setDeliveryNote(err.message || 'Please allow location access to confirm delivery area.')
+      const message = err.message || 'Please allow location access to confirm delivery area.'
+      setDeliveryNote(message)
+      showToast(message)
     } finally {
       setLocating(false)
     }
@@ -124,12 +134,9 @@ export default function CheckoutPage() {
       } catch (err) {
         if (!ignore) {
           setQuote(null)
-          setQuoteError(
-            getErrorMessage(
-              err,
-              'Unable to calculate the order.'
-            )
-          )
+          const message = getErrorMessage(err, 'Unable to calculate the order.')
+          setQuoteError(message)
+          showToast(message)
         }
       } finally {
         if (!ignore) setQuoting(false)
@@ -140,11 +147,26 @@ export default function CheckoutPage() {
       ignore = true
       window.clearTimeout(timer)
     }
-  }, [payload])
+  }, [payload, showToast])
+
+  function onInvalid(formErrors) {
+    const message =
+      formErrors.name?.message ||
+      formErrors.phone?.message ||
+      formErrors.address?.message ||
+      'Enter your name, a 10-digit mobile number, and address before paying.'
+    showToast(message)
+  }
 
   async function onPay() {
+    if (deliveryNote.startsWith('Sorry')) {
+      showToast(deliveryNote)
+      return
+    }
     if (!payload || !quote) {
-      setNotice('Enter your details and wait for the final amount before paying.')
+      const message = quoteError || 'Enter your name, a 10-digit mobile number, and address before paying.'
+      setNotice(message)
+      showToast(message)
       return
     }
     setPaying(true)
@@ -153,7 +175,9 @@ export default function CheckoutPage() {
     try {
       const payment = await createPayment(payload)
       if (payment.amount !== Math.round(toMoney(quote.total) * 100)) {
-        setQuoteError('Menu prices were updated. Please review the new total.')
+        const message = 'Menu prices were updated. Please review the new total.'
+        setQuoteError(message)
+        showToast(message)
         const refreshed = await calculateOrder(payload)
         setQuote(refreshed)
         setPaying(false)
@@ -201,6 +225,7 @@ export default function CheckoutPage() {
           ondismiss: () => {
             setPaying(false)
             setNotice('Payment was cancelled. You have not been charged.')
+            showToast('Payment was cancelled. You have not been charged.')
           }
         }
       })
@@ -218,7 +243,9 @@ export default function CheckoutPage() {
       checkout.open()
     } catch (err) {
       setPaying(false)
-      setQuoteError(getErrorMessage(err, 'Unable to start payment.'))
+      const message = getErrorMessage(err, 'Unable to start payment.')
+      setQuoteError(message)
+      showToast(message)
     }
   }
 
@@ -234,7 +261,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <form className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_0.9fr]" onSubmit={handleSubmit(onPay)} noValidate>
+    <form className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_0.9fr]" onSubmit={handleSubmit(onPay, onInvalid)} noValidate>
       <section className="card p-5">
         <h1 className="text-3xl font-semibold">Checkout</h1>
         <p className="mt-1 text-cocoa">Secure online payment. Only online payment is supported.</p>
@@ -315,10 +342,11 @@ export default function CheckoutPage() {
         {notice ? <p className="text-sm text-cocoa">{notice}</p> : null}
 
         <p className="text-sm font-medium text-leaf">Secure online payment</p>
-        <button type="submit" className="btn-primary w-full" disabled={paying || quoting || !quote || deliveryNote.startsWith('Sorry')}>
+        <button type="submit" className="btn-primary w-full" disabled={paying}>
           {paying ? 'Opening payment...' : `Pay ${formatINR(quote?.total ?? cartSubtotal)}`}
         </button>
       </section>
+      <Toast message={toast} onClose={dismissToast} />
     </form>
   )
 }

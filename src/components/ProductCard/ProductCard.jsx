@@ -1,23 +1,22 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import FoodArt from '../FoodArt/FoodArt'
+import QuantityControl from '../QuantityControl/QuantityControl'
 import { formatINR } from '../../utils/currency'
 import { useCart } from '../../context/CartContext/CartContext'
 
 export default function ProductCard({ item }) {
-  const { addItem } = useCart()
-  const [added, setAdded] = useState(false)
+  const { items, addItem, updateQuantity } = useCart()
+  const cartItem = {
+    menuItemId: String(item.id),
+    name: item.name,
+    price: item.price,
+    category: item.category,
+    image: item.image
+  }
+  const quantity = items.find((entry) => entry.menuItemId === String(item.id))?.quantity || 0
 
   function handleAdd() {
-    addItem({
-      menuItemId: item.id,
-      name: item.name,
-      price: item.price,
-      category: item.category,
-      image: item.image
-    })
-    setAdded(true)
-    window.setTimeout(() => setAdded(false), 800)
+    addItem(cartItem)
   }
 
   return (
@@ -35,9 +34,18 @@ export default function ProductCard({ item }) {
         </div>
         <div className="flex items-center justify-between gap-3">
           <p className="text-xl font-semibold text-terracotta">{formatINR(item.price)}</p>
-          <button type="button" className={`btn-primary min-w-[5.5rem] px-4 ${added ? 'animate-pop bg-leaf hover:bg-leaf' : ''}`} onClick={handleAdd}>
-            {added ? 'Added' : '+ Add'}
-          </button>
+          {quantity > 0 ? (
+            <QuantityControl
+              quantity={quantity}
+              min={0}
+              label={item.name}
+              onChange={(next) => updateQuantity(String(item.id), next)}
+            />
+          ) : (
+            <button type="button" className="btn-primary min-w-[5.5rem] px-4" onClick={handleAdd}>
+              + Add
+            </button>
+          )}
         </div>
       </div>
     </article>
