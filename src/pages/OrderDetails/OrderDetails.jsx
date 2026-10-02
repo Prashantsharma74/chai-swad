@@ -53,6 +53,7 @@ export default function OrderDetailsPage() {
   const rows = [
     ['Customer', order.customer.name],
     ['Phone', order.customer.phone],
+    ['Email', order.customer.email],
     ['Address', order.customer.address],
     ['Table', order.tableNumber || '—'],
     ['Subtotal', formatINR(order.subtotal)],

@@ -18,6 +18,7 @@ import { formatINR } from '../../utils/currency'
 import { distanceMeters, readCurrentPosition } from '../../utils/geo'
 
 const phonePattern = /^[6-9]\d{9}$/
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function CheckoutPage() {
   usePageTitle('Checkout')
@@ -49,23 +50,33 @@ export default function CheckoutPage() {
 
   const name = watch('name')
   const phone = watch('phone')
+  const email = watch('email')
   const address = watch('address')
 
   const payload = useMemo(() => {
-    if (!name?.trim() || !phonePattern.test(phone || '') || !address?.trim() || !items.length) return null
+    const normalizedEmail = (email || '').trim().toLowerCase()
+    if (
+      !name?.trim() ||
+      !phonePattern.test(phone || '') ||
+      !emailPattern.test(normalizedEmail) ||
+      !address?.trim() ||
+      !items.length
+    ) {
+      return null
+    }
     return {
-      customer: { name: name.trim(), phone, address: address.trim() },
+      customer: { name: name.trim(), phone, email: normalizedEmail, address: address.trim() },
       ...(tableNumber ? { tableNumber } : {}),
       items: items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
       ...(location ? { location } : {})
     }
-  }, [name, phone, address, items, tableNumber, location])
+  }, [name, phone, email, address, items, tableNumber, location])
 
   useEffect(() => {
-    if (name || phone || address) {
-      saveCheckoutDraft({ name, phone, address })
+    if (name || phone || email || address) {
+      saveCheckoutDraft({ name, phone, email, address })
     }
-  }, [name, phone, address])
+  }, [name, phone, email, address])
 
   useEffect(() => {
     let ignore = false
@@ -153,8 +164,9 @@ export default function CheckoutPage() {
     const message =
       formErrors.name?.message ||
       formErrors.phone?.message ||
+      formErrors.email?.message ||
       formErrors.address?.message ||
-      'Enter your name, a 10-digit mobile number, and address before paying.'
+      'Enter your name, phone, email, and address before paying.'
     showToast(message)
   }
 
@@ -164,7 +176,7 @@ export default function CheckoutPage() {
       return
     }
     if (!payload || !quote) {
-      const message = quoteError || 'Enter your name, a 10-digit mobile number, and address before paying.'
+      const message = quoteError || 'Enter your name, phone, email, and address before paying.'
       setNotice(message)
       showToast(message)
       return
@@ -194,6 +206,7 @@ export default function CheckoutPage() {
         order_id: payment.razorpayOrderId,
         prefill: {
           name: payload.customer.name,
+          email: payload.customer.email,
           contact: payload.customer.phone
         },
         theme: { color: '#6F3E22' },
@@ -291,6 +304,23 @@ export default function CheckoutPage() {
             {errors.phone ? <span className="mt-1 block text-sm text-clay">{errors.phone.message}</span> : null}
           </label>
           <label className="block">
+            <span className="mb-1 block text-sm font-semibold">Email</span>
+            <input
+              className="field"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...register('email', {
+                required: 'Please enter your email address.',
+                pattern: {
+                  value: emailPattern,
+                  message: 'Please enter a valid email address.'
+                }
+              })}
+            />
+            {errors.email ? <span className="mt-1 block text-sm text-clay">{errors.email.message}</span> : null}
+          </label>
+          <label className="block">
             <span className="mb-1 block text-sm font-semibold">Address</span>
             <textarea
               className="field min-h-28"
@@ -321,6 +351,7 @@ export default function CheckoutPage() {
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between gap-4"><dt>Name</dt><dd>{name?.trim() || '—'}</dd></div>
             <div className="flex justify-between gap-4"><dt>Phone</dt><dd>{phone || '—'}</dd></div>
+            <div className="flex justify-between gap-4"><dt>Email</dt><dd className="text-right break-all">{email?.trim() || '—'}</dd></div>
             <div className="flex justify-between gap-4"><dt>Address</dt><dd className="text-right">{address?.trim() || '—'}</dd></div>
             {tableNumber ? <div className="flex justify-between gap-4"><dt>Table</dt><dd>{tableNumber}</dd></div> : null}
           </dl>

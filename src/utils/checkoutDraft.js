@@ -6,10 +6,11 @@ export function readCheckoutDraft() {
     return {
       name: parsed.name || '',
       phone: parsed.phone || '',
+      email: parsed.email || '',
       address: parsed.address || ''
     }
   } catch {
-    return { name: '', phone: '', address: '' }
+    return { name: '', phone: '', email: '', address: '' }
   }
 }
 
@@ -19,6 +20,7 @@ export function saveCheckoutDraft(draft) {
     JSON.stringify({
       name: draft.name || '',
       phone: draft.phone || '',
+      email: draft.email || '',
       address: draft.address || ''
     })
   )
